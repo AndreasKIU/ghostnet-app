@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -36,16 +37,21 @@ public class NetController {
     return "nets/list";
   }
 
-  // Wer bergt was? – Übersicht
+  // Wer bergt was? – nur Personen mit mindestens 1 Zuweisung anzeigen
   @GetMapping("/team")
   public String team(Model m) {
-    List<Person> recoverers = people.findAll().stream().filter(p -> p.getRole()==Role.RECOVERER).toList();
     var scheduled = svc.listByStatuses(EnumSet.of(NetStatus.SCHEDULED));
     Map<Long, List<GhostNet>> assignments = scheduled.stream()
         .filter(n -> n.getAssignee() != null)
         .collect(Collectors.groupingBy(n -> n.getAssignee().getId()));
 
-    m.addAttribute("recoverers", recoverers);
+    List<Person> recoverersWithAssignments = people.findAll().stream()
+        .filter(p -> p.getRole()==Role.RECOVERER)
+        .filter(p -> assignments.containsKey(p.getId()))
+        .sorted(Comparator.comparing(Person::getName))
+        .toList();
+
+    m.addAttribute("recoverers", recoverersWithAssignments);
     m.addAttribute("assignments", assignments);
     return "nets/team";
   }

@@ -21,7 +21,12 @@
 
   <h2>Wer bergt was?</h2>
 
-  <div class="row g-3">
+  <!-- Empty state für den gesamten View -->
+  <div th:if="${#lists.isEmpty(recoverers)}" class="alert alert-info">
+    Aktuell keine geplanten Bergungen.
+  </div>
+
+  <div class="row g-3" th:if="${!#lists.isEmpty(recoverers)}">
     <div class="col-lg-6" th:each="r : ${recoverers}">
       <div class="card shadow-sm">
         <div class="card-body">
@@ -29,11 +34,7 @@
           <p class="card-subtitle mb-3 text-muted" th:text="${r.phone != null ? r.phone : '–'}">Telefon</p>
 
           <div th:with="list=${assignments[r.id]}">
-            <div th:if="${#lists.isEmpty(list)}" class="alert alert-light border">
-              Keine Zuweisungen.
-            </div>
-
-            <table th:if="${!#lists.isEmpty(list)}" class="table table-sm">
+            <table class="table table-sm">
               <thead><tr>
                 <th>ID</th><th>Koordinate</th><th>Größe</th><th>Status</th><th>Aktion</th>
               </tr></thead>
