@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GhostNet – Offene Netze</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+  <link rel="stylesheet" th:href="@{/app.css}"/>
+</head>
+<body class="container py-3">
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg bg-light rounded mb-4 px-3">
+    <a class="navbar-brand fw-semibold" th:href="@{/nets}">GhostNet</a>
+    <div class="navbar-nav">
+      <a class="nav-link" th:href="@{/nets}">Offene Netze</a>
+      <a class="nav-link" th:href="@{/nets/new}">Netz melden</a>
+      <a class="nav-link" th:href="@{/nets/team}">Wer bergt was?</a>
+    </div>
+  </nav>
+
+  <!-- Toasts -->
+  <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="toastError" class="toast text-bg-danger" th:attr="data-show=${error != null}" role="alert">
+      <div class="toast-body" th:text="${error}">Fehler</div>
+    </div>
+    <div id="toastMsg" class="toast text-bg-success" th:attr="data-show=${message != null}" role="alert">
+      <div class="toast-body" th:text="${message}">OK</div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <form th:action="@{/nets}" method="get" class="mb-3">
+    <label class="form-label me-2">Filter:</label>
+    <select name="filter" class="form-select d-inline-block w-auto" onchange="this.form.submit()">
+      <option th:value="open"      th:selected="${filter=='open'}">Offen (REPORTED + SCHEDULED)</option>
+      <option th:value="scheduled" th:selected="${filter=='scheduled'}">Nur SCHEDULED</option>
+      <option th:value="missing"   th:selected="${filter=='missing'}">Nur MISSING</option>
+      <option th:value="all"       th:selected="${filter=='all'}">Alle (REPORTED, SCHEDULED, MISSING)</option>
+    </select>
+  </form>
+
+  <h2>Offene &amp; geplante Netze</h2>
+
+  <!-- Empty State -->
+  <div th:if="${#lists.isEmpty(nets)}" class="alert alert-info">
+    Keine Einträge für diesen Filter.
+  </div>
+
+  <table th:if="${!#lists.isEmpty(nets)}" class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Koordinate</th>
+        <th>Größe</th>
+        <th>Status</th>
+        <th>Assignee</th>
+        <th>Aktion</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="n : ${nets}">
+        <td th:text="${n.id}"></td>
+        <td th:text="${#numbers.formatDecimal(n.gpsLat,1,6) + ', ' + #numbers.formatDecimal(n.gpsLon,1,6)}"></td>
+        <td th:text="${n.estimatedSize}"></td>
+        <td>
+          <span th:switch="${n.status}">
+            <span th:case="${T(de.ihrname.ghostnet.domain.NetStatus).REPORTED}"  class="badge bg-secondary">REPORTED</span>
+            <span th:case="${T(de.ihrname.ghostnet.domain.NetStatus).SCHEDULED}" class="badge bg-info">SCHEDULED</span>
+            <span th:case="${T(de.ihrname.ghostnet.domain.NetStatus).MISSING}"   class="badge bg-warning text-dark">MISSING</span>
+            <span th:case="${T(de.ihrname.ghostnet.domain.NetStatus).RECOVERED}" class="badge bg-success">RECOVERED</span>
+            <span th:case="*" class="badge bg-secondary" th:text="${n.status}">STATUS</span>
+          </span>
+        </td>
+        <td th:text="${n.assignee != null ? n.assignee.name : '-'}"></td>
+        <td>
+          <!-- Übernehmen: nur REPORTED -->
+          <form th:if="${n.status == T(de.ihrname.ghostnet.domain.NetStatus).REPORTED}"
+                th:action="@{/nets/{id}/assign(id=${n.id})}" method="post" class="d-flex gap-2 mb-1">
+            <select name="personId" class="form-select form-select-sm" required>
+              <option th:each="p : ${recoverers}" th:value="${p.id}" th:text="${p.name}"></option>
+            </select>
+            <button class="btn btn-sm btn-primary" type="submit">Übernehmen</button>
+          </form>
+
+          <!-- Zuweisung aufheben: nur SCHEDULED mit Assignee -->
+          <form th:if="${n.status == T(de.ihrname.ghostnet.domain.NetStatus).SCHEDULED and n.assignee != null}"
+                th:action="@{/nets/{id}/unassign(id=${n.id})}" method="post" class="mb-1">
+            <input type="hidden" name="personId" th:value="${n.assignee.id}"/>
+            <button class="btn btn-sm btn-outline-secondary" type="submit">Zuweisung aufheben</button>
+          </form>
+
+          <!-- Als geborgen melden: nur SCHEDULED mit Assignee -->
+          <form th:if="${n.status == T(de.ihrname.ghostnet.domain.NetStatus).SCHEDULED and n.assignee != null}"
+                th:action="@{/nets/{id}/recover(id=${n.id})}" method="post" class="mb-1">
+            <input type="hidden" name="personId" th:value="${n.assignee.id}"/>
+            <button class="btn btn-sm btn-success" type="submit">Als geborgen melden</button>
+          </form>
+
+          <!-- Verschollen melden: nur REPORTED oder SCHEDULED -->
+          <form th:if="${n.status == T(de.ihrname.ghostnet.domain.NetStatus).REPORTED or n.status == T(de.ihrname.ghostnet.domain.NetStatus).SCHEDULED}"
+                th:action="@{/nets/{id}/missing(id=${n.id})}" method="post" class="d-flex gap-2 mb-1">
+            <select name="reporterId" class="form-select form-select-sm" required>
+              <option th:each="r : ${reporters}" th:value="${r.id}" th:text="${r.name}"></option>
+            </select>
+            <button class="btn btn-sm btn-warning" type="submit">Verschollen melden</button>
+          </form>
+
+          <!-- Wiedergefunden (reopen): nur MISSING -->
+          <form th:if="${n.status == T(de.ihrname.ghostnet.domain.NetStatus).MISSING}"
+                th:action="@{/nets/{id}/reopen(id=${n.id})}" method="post" class="d-flex gap-2">
+            <select name="reporterId" class="form-select form-select-sm" required>
+              <option th:each="r : ${reporters}" th:value="${r.id}" th:text="${r.name}"></option>
+            </select>
+            <button class="btn btn-sm btn-outline-primary" type="submit">Als wiedergefunden markieren</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const e = document.getElementById('toastError');
+      if (e && e.dataset.show === 'true') new bootstrap.Toast(e).show();
+      const m = document.getElementById('toastMsg');
+      if (m && m.dataset.show === 'true') new bootstrap.Toast(m).show();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+/* dezente Optik für Cards/Abstände */
+.card { border-radius: 1rem; }
+.navbar { border-radius: 1rem; }
+.table thead th { font-weight: 600; }
+.toast { opacity: .98; }
