@@ -1,8 +1,5 @@
 target/
 data/
 *.log
+.idea/ .project .classpath .settings/
 .DS_Store
-.idea/
-.project
-.classpath
-.settings/
