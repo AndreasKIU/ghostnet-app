@@ -1,27 +1,36 @@
-# GhostNet (Aufgabe 3) – Spring Boot Starter
+# GhostNet — Prototyp (IPWA02-01)
 
-## Voraussetzungen
-- **Java 17** (z. B. Temurin/OpenJDK)
-- **Maven** (oder VS Code mit Java & Spring Boot Extensions)
-- Optional: **VS Code** + "Extension Pack for Java" + "Lombok Annotations Support"
+Web-App zum **Melden** und **Bergen** von Geisternetzen (Fallstudie „Ghost Net Fishing“).  
+Umgesetzt mit **Spring Boot**, **Spring Data JPA (Hibernate)**, **H2**, **Thymeleaf**, **Bootstrap**.
 
-## Start
+---
+
+## Ziele & Stories (MoSCoW)
+
+**MUST**
+1. Geisternetz melden (auch anonym)
+2. Bergung übernehmen
+3. Offene/geplante Netze sehen (Filter)
+4. Als geborgen melden
+
+**COULD**
+- „Verschollen melden“ + „Als wiedergefunden markieren“ (strenge Logik)
+- „Wer bergt was?“ – Übersicht der geplanten Bergungen je Person
+
+---
+
+## Tech-Stack
+
+- Java 17, Maven  
+- Spring Boot 3 (Web, Validation), Spring Data JPA (Hibernate)  
+- H2 (persistente Datei-DB), Thymeleaf, Bootstrap 5
+
+---
+
+## Schnellstart
+
 ```bash
 mvn spring-boot:run
-# danach: http://localhost:8080/  (leitet auf /nets)
-# Seiten:
-# - /nets     -> Liste offener/geplanter Netze
-# - /nets/new -> Netz melden
-# H2-Konsole: /h2-console  (JDBC URL: jdbc:h2:mem:ghostnet)
-```
-
-## Was ist drin?
-- Spring Boot (Web, Thymeleaf, Validation, Data JPA)
-- H2 In-Memory DB (Dev)
-- Seed-Daten (2 Recoverer, 1 Reporter, 2 Netze)
-- Einfache MVC-Views mit Bootstrap (via WebJars)
-
-## Nächste Schritte
-- Tests erweitern
-- (Optional) „Verschollen melden“ & Kartenansicht (Leaflet)
-- Bericht gemäß Leitfaden erstellen (UML/ER/Screenshots)
+# App: http://localhost:8080/
+# H2-Konsole: http://localhost:8080/h2-console
+# JDBC URL: jdbc:h2:file:./data/ghostnetdb  | user: sa | pass: (leer)

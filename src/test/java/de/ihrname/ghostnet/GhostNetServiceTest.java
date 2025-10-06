@@ -3,10 +3,13 @@ package de.ihrname.ghostnet;
 import de.ihrname.ghostnet.domain.*;
 import de.ihrname.ghostnet.repo.*;
 import de.ihrname.ghostnet.service.GhostNetService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.Assertions.*;
+
+@Disabled("Superseded by GhostNetServiceRulesTest")
 
 @SpringBootTest
 class GhostNetServiceTest {
